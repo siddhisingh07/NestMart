@@ -1,4 +1,4 @@
-import { cat_1,  cat_2, cat_3, cat_4, cat_5, cat_6, cat_7, cat_8, img,} from "../../Assets/Assets";
+import { cat_1, cat_2, cat_3, cat_4, cat_5, cat_6, cat_7, cat_8, img, } from "../../Assets/Assets";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import Heading from "../Common/Heading";
@@ -24,7 +24,7 @@ const Categories = () => {
     navigate(`/products/${category}`);
   };
 
-  let images = [cat_3,  cat_2, cat_1, cat_4, cat_5, cat_6, cat_7, cat_8, cat_2]
+  let images = [cat_3, cat_2, cat_1, cat_4, cat_5, cat_6, cat_7, cat_8, cat_2]
 
   const handleData = async () => {
     try {
@@ -40,15 +40,15 @@ const Categories = () => {
     handleData();
   }, []);
 
-  useEffect(()=>{
-   if(categoryList){
-      let category = categoryList.map((obj, idx)=>({
-      ...obj,
-      img : images[idx% images.length]
-    }))
-    setCategoryList(category)
-   }
-  }, [categoryList])
+  useEffect(() => {
+    if (categoryList) {
+      let category = categoryList.map((obj, idx) => ({
+        ...obj,
+        img: images[idx % images.length]
+      }))
+      setCategoryList(category)
+    }
+  }, [])
 
   return (
     <div className="w-ful px-3 md:px-10 lg:px-28 bg-gray-50 py-4">
@@ -57,8 +57,8 @@ const Categories = () => {
       />
       <div className="flex whitespace-nowrap overflow-x-auto overflow-y-hidden gap-4 scrollbar">
         {categoryList == null ? (
-          [...Array(10)].map((_, i)=> <CategorySkeleton key={i}/>)
-        
+          [...Array(10)].map((_, i) => <CategorySkeleton key={i} />)
+
         ) : (
           categoryList.map((item, idx) => {
             return (

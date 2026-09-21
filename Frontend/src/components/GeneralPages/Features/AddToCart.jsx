@@ -6,35 +6,36 @@ import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { product_1, product_1_back } from "../../../Assets/Assets";
 import { authContext } from "../../../Context/AuthContext";
+import { base_url } from "../../../constant";
+import { handleRazorPay } from "../../../utils/razor";
 
 const AddToCart = () => {
   const [cart, setCart] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
 
-  const {setCartSize} = useContext(authContext);
+  const { setCartSize } = useContext(authContext);
 
   const [isOpen, setIsOpen] = useState(false);
   const [address, setAddress] = useState("");
 
   const navigate = useNavigate();
 
-  useEffect(()=>{
-    setCartSize(cart.length)
-  }, [cart])
+  useEffect(() => {
+    setCartSize(cart.length);
+  }, [cart]);
 
   // Fetch cart from backend
   const handleCart = async () => {
     try {
-      let res = await axios.get("http://localhost:3000/api/cart/", {
+      let res = await axios.get(`${base_url}/cart/`, {
         withCredentials: true,
       });
       if (res.data?.data) {
         setCart(res.data.data.items || []);
       }
     } catch (error) {
-       setCart([]);
+      setCart([]);
       return toast.error(error.response?.data?.message || "Failed to fetch cart");
-     
     }
   };
 
@@ -60,7 +61,7 @@ const AddToCart = () => {
     }
 
     if (!shippingAddress) {
-      return toast.error("Shipping Address is required")
+      return toast.error("Shipping Address is required");
     }
 
     try {
@@ -79,22 +80,33 @@ const AddToCart = () => {
         shippingAddress,
       };
 
-      const res = await axios.post("http://localhost:3000/api/order", order, {
+
+      const res = await axios.post(`${base_url}/order`, order, {
         withCredentials: true,
       });
+      console.log("res.data._id", res.data.data._id)
 
-       toast.success(res.data.message || "Order placed successfully!");
-       navigate("/my-orders");
 
-      if (res) {
-        setCart([]);
+      if (res.data.success) {
+        let a = await handleRazorPay(res.data.data._id)
+        console.log(a, "%%%%%%%%%%%%")
+        if (a) {
+          toast.success(res.data.message || "Order placed successfully!");
+          navigate("/my-orders");
+          setCart([]);
+          await handleCart();
+        }
+
       }
 
+
+
+
+
       // Refresh cart from backend (backend will be cleared after order)
-      await handleCart();
+
     } catch (error) {
-     return toast.error(error.message)
-      // toast.error(error.response?.data?.message || "Failed to place order");
+      return toast.error(error.response?.data?.message || error.message);
     }
   };
 
@@ -107,9 +119,6 @@ const AddToCart = () => {
       );
 
       setCart(updatedCart);
-      setCartSize(cart.length)
-      console.log(cart)
-
 
       const total = updatedCart.reduce(
         (acc, item) => acc + item.price * item.quantity,
@@ -118,7 +127,7 @@ const AddToCart = () => {
       setTotalAmount(total);
 
       await axios.put(
-        `http://localhost:3000/api/cart/${productId}`,
+        `${base_url}/cart/${productId}`,
         { quantity: parseInt(newQuantity) },
         { withCredentials: true }
       );
@@ -131,7 +140,7 @@ const AddToCart = () => {
 
   const removeItem = async (productId) => {
     try {
-      await axios.delete(`http://localhost:3000/api/cart/remove/${productId}`, {
+      await axios.delete(`${base_url}/cart/remove/${productId}`, {
         withCredentials: true,
       });
       toast.success("Item removed from cart");

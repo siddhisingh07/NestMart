@@ -43,9 +43,13 @@ const Login = () => {
       let response = await axios.post(`${base_url}/users/login`, data, {
         withCredentials: true,
       });
-      toast.success(response.data.message);
-      setUser(response.data.data.userData);
-      navigate(from, {replace : true}  );
+      const userData = response.data.data.userData;
+      setUser({
+        ...userData,
+        id: userData.id || userData._id,
+        _id: userData.id || userData._id,
+      });
+      navigate(from, { replace: true });
     } catch (error) {
       if (error.response && error.response.data) {
         toast.error(error.response.data.message);
