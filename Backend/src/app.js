@@ -9,7 +9,6 @@ import { ErrorHandler } from '../utils/ErrorHandler.js';
 
 const app = express();
 
-app.use(express());
 app.use(
   cors({
     origin: 'http://localhost:5173',

@@ -4,6 +4,9 @@ import { Product } from '../models/productModel.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ErrorHandler } from '../utils/ErrorHandler.js';
+import { validatePaymentVerification } from 'razorpay/dist/utils/razorpay-utils.js';
+
+
 
 const createOrder = asyncHandler(async (req, res) => {
   let { orderItems, totalAmount, shippingAddress } = req.body;
@@ -16,6 +19,7 @@ const createOrder = asyncHandler(async (req, res) => {
       throw new ErrorHandler(400, "Product does not exist");
     }
     if (product.stock < elm.quantity) {
+      console.log("helllllllllllll", product.stock, elm.quantity)
       throw new ErrorHandler(
         400,
         `Not enough stock for product ${product.productName}`
@@ -52,20 +56,50 @@ const createOrder = asyncHandler(async (req, res) => {
 
 
 const userOrders = asyncHandler(async (req, res) => {
-    let  _id = req.user._id;
-    let allOrders = await Order.find({ user: _id }).populate("orderItems.product");
-    if (!allOrders) {
-        throw new ErrorHandler(400, "failed to fetch all orders")
-    }
-    res.status(200).json(new ApiResponse(200, allOrders))
+  let _id = req.user._id;
+  let allOrders = await Order.find({ user: _id }).populate("orderItems.product");
+  if (!allOrders) {
+    throw new ErrorHandler(400, "failed to fetch all orders")
+  }
+  res.status(200).json(new ApiResponse(200, allOrders))
 });
 
-const  adminOrders  = asyncHandler(async(req,res)=>{
-    const allOrders = await Order.find({}).populate("user").populate("orderItems.product");
-    if (!allOrders) {
-        throw new ErrorHandler(400, "Failed to fetch all user orders")
-    }
-    res.status(200).json(new ApiResponse(200, allOrders))
-}) 
+const adminOrders = asyncHandler(async (req, res) => {
+  const allOrders = await Order.find({}).populate("user").populate("orderItems.product");
+  if (!allOrders) {
+    throw new ErrorHandler(400, "Failed to fetch all user orders")
+  }
+  res.status(200).json(new ApiResponse(200, allOrders))
+})
 
-export { createOrder, userOrders, adminOrders };
+
+const razerOrder = asyncHandler(async (req, res) => {
+  const {
+    razorpay_payment_id,
+    razorpay_order_id,
+    razorpay_signature,
+    orderId
+  } = req.body;
+
+  console.log(orderId, razorpay_payment_id)
+
+
+
+  const generated_signature = validatePaymentVerification({ "order_id": orderId, "payment_id": razorpay_payment_id }, razorpay_signature, "o4nWBJMPsBNLHIZXDhZyK33U");
+
+
+  if (generated_signature) {
+    console.log("Successful")
+  }
+
+
+
+  return res.send("done")
+
+
+
+
+
+})
+
+export { createOrder, userOrders, adminOrders, razerOrder };
